@@ -1,0 +1,25 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t reguero/react-test -f ./client/Dockerfile.dev ./client
+
+scripts:
+    - docker run -e CI=true reguero/react-test npm test
+
+after_success:
+    - docker build -t reguero/multi-client ./client
+    - docker build -t reguero/multi-nginx ./nginx
+    - docker build -t reguero/multi-server ./server
+    - docker build -t reguero/multi-worker ./worker
+    # Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those images and push them to docker hub
+    - docker push reguero/multi-client
+    - docker push reguero/multi-nginx
+    - docker push reguero/multi-server
+    - docker push reguero/multi-worker
+
+
+
